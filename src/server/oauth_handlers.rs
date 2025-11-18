@@ -1,9 +1,4 @@
-use axum::{
-    extract::State,
-    http::StatusCode,
-    response::IntoResponse,
-    Json,
-};
+use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
@@ -76,10 +71,12 @@ pub async fn oauth_authorize(
     let config = match req.oauth_type.as_str() {
         "max" => OAuthConfig::anthropic(),
         "console" => OAuthConfig::anthropic_console(),
-        _ => return Err((
-            StatusCode::BAD_REQUEST,
-            "Invalid oauth_type. Must be 'max' or 'console'".to_string()
-        )),
+        _ => {
+            return Err((
+                StatusCode::BAD_REQUEST,
+                "Invalid oauth_type. Must be 'max' or 'console'".to_string(),
+            ))
+        }
     };
 
     let oauth_client = OAuthClient::new(config, state.token_store.clone());
@@ -110,10 +107,12 @@ pub async fn oauth_exchange(
     let token = oauth_client
         .exchange_code(&req.code, &req.verifier, &req.provider_id)
         .await
-        .map_err(|e| (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Failed to exchange code: {}", e)
-        ))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Failed to exchange code: {}", e),
+            )
+        })?;
 
     Ok(Json(OAuthExchangeResponse {
         success: true,
@@ -152,12 +151,12 @@ pub async fn oauth_delete_token(
     State(state): State<Arc<AppState>>,
     Json(req): Json<DeleteTokenRequest>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
-    state.token_store
-        .remove(&req.provider_id)
-        .map_err(|e| (
+    state.token_store.remove(&req.provider_id).map_err(|e| {
+        (
             StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Failed to delete token: {}", e)
-        ))?;
+            format!("Failed to delete token: {}", e),
+        )
+    })?;
 
     Ok(Json(serde_json::json!({
         "success": true,
@@ -176,10 +175,12 @@ pub async fn oauth_refresh_token(
     let token = oauth_client
         .refresh_token(&req.provider_id)
         .await
-        .map_err(|e| (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Failed to refresh token: {}", e)
-        ))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Failed to refresh token: {}", e),
+            )
+        })?;
 
     Ok(Json(OAuthExchangeResponse {
         success: true,
