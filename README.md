@@ -91,10 +91,10 @@ Claude Code → Claude Code Mux → Multiple AI Providers
 
 ## Supported Providers
 
-**16+ AI providers with automatic format translation, streaming, and failover:**
+**17+ AI providers with automatic format translation, streaming, and failover:**
 
 - **Anthropic-compatible**: Anthropic (API Key/OAuth), ZenMux, z.ai, Minimax, Kimi
-- **OpenAI-compatible**: OpenAI, OpenRouter, Groq, Together, Fireworks, Deepinfra, Cerebras, Moonshot, Nebius, NovitaAI, Baseten
+- **OpenAI-compatible**: OpenAI, OpenRouter, Groq, Together, Fireworks, Deepinfra, Cerebras, Moonshot, Nebius, NovitaAI, Baseten, Vertex AI Studio
 
 <details>
 <summary>📋 View full provider details</summary>
@@ -119,6 +119,7 @@ Claude Code → Claude Code Mux → Multiple AI Providers
 - **Nebius** - AI inference platform
 - **NovitaAI** - GPU cloud platform
 - **Baseten** - ML deployment platform
+- **Vertex AI Studio** - Google's Gemini models (OpenAI-compatible)
 
 </details>
 
@@ -276,9 +277,15 @@ Navigate to **Providers** tab → Click **"Add Provider"**
 3. Enter API key: `your-zai-api-key`
 4. Click **"Add Provider"**
 
+#### Example: Add Vertex AI Studio Provider
+1. Select provider type: **Vertex AI Studio**
+2. Enter provider name: `vertex-ai`
+3. Enter API key: `your-google-api-key`
+4. Click **"Add Provider"**
+
 **Supported Providers**:
 - Anthropic-compatible: Anthropic (API Key or OAuth), ZenMux, z.ai, Minimax, Kimi
-- OpenAI-compatible: OpenAI, OpenRouter, Groq, Together, Fireworks, Deepinfra, Cerebras, Nebius, NovitaAI, Baseten
+- OpenAI-compatible: OpenAI, OpenRouter, Groq, Together, Fireworks, Deepinfra, Cerebras, Nebius, NovitaAI, Baseten, Vertex AI Studio
 
 ### Step 2: Add Model Mappings
 

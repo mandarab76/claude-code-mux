@@ -377,6 +377,15 @@ impl OpenAIProvider {
         )
     }
 
+    /// Google Vertex AI Studio - OpenAI-compatible for Gemini models
+    pub fn vertex_ai(api_key: String, models: Vec<String>) -> Self {
+        Self::new(
+            api_key,
+            Some("https://generativelanguage.googleapis.com/v1beta/openai".to_string()),
+            models,
+        )
+    }
+
     /// Transform Anthropic request to OpenAI format
     fn transform_request(&self, request: &AnthropicRequest) -> Result<OpenAIRequest, ProviderError> {
         let mut openai_messages = Vec::new();

@@ -126,6 +126,10 @@ impl ProviderRegistry {
                     api_key,
                     config.models.clone(),
                 )),
+                "vertex-ai" => Box::new(OpenAIProvider::vertex_ai(
+                    api_key,
+                    config.models.clone(),
+                )),
 
                 other => {
                     return Err(ProviderError::ConfigError(
