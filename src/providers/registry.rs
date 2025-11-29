@@ -1,4 +1,7 @@
-use super::{AnthropicProvider, ProviderConfig, OpenAIProvider, AnthropicCompatibleProvider, error::ProviderError};
+use super::{
+    error::ProviderError, AnthropicCompatibleProvider, AnthropicProvider, OpenAIProvider,
+    ProviderConfig,
+};
 use crate::auth::TokenStore;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -21,7 +24,10 @@ impl ProviderRegistry {
     }
 
     /// Load providers from configuration
-    pub fn from_configs(configs: &[ProviderConfig], token_store: Option<TokenStore>) -> Result<Self, ProviderError> {
+    pub fn from_configs(
+        configs: &[ProviderConfig],
+        token_store: Option<TokenStore>,
+    ) -> Result<Self, ProviderError> {
         let mut registry = Self::new();
 
         for config in configs {
@@ -32,17 +38,19 @@ impl ProviderRegistry {
 
             // Get API key - required for API key auth, skipped for OAuth
             let api_key = match &config.auth_type {
-                super::AuthType::ApiKey => {
-                    config.api_key.clone().ok_or_else(|| {
-                        ProviderError::ConfigError(
-                            format!("Provider '{}' requires api_key for ApiKey auth", config.name)
-                        )
-                    })?
-                }
+                super::AuthType::ApiKey => config.api_key.clone().ok_or_else(|| {
+                    ProviderError::ConfigError(format!(
+                        "Provider '{}' requires api_key for ApiKey auth",
+                        config.name
+                    ))
+                })?,
                 super::AuthType::OAuth => {
                     // OAuth providers will handle authentication differently
                     // For now, use a placeholder - will be replaced with token
-                    config.oauth_provider.clone().unwrap_or_else(|| config.name.clone())
+                    config
+                        .oauth_provider
+                        .clone()
+                        .unwrap_or_else(|| config.name.clone())
                 }
             };
 
@@ -59,7 +67,10 @@ impl ProviderRegistry {
                 "anthropic" => Box::new(AnthropicCompatibleProvider::new(
                     config.name.clone(),
                     api_key,
-                    config.base_url.clone().unwrap_or_else(|| "https://api.anthropic.com".to_string()),
+                    config
+                        .base_url
+                        .clone()
+                        .unwrap_or_else(|| "https://api.anthropic.com".to_string()),
                     config.models.clone(),
                     config.oauth_provider.clone(),
                     token_store.clone(),
@@ -86,51 +97,25 @@ impl ProviderRegistry {
                 )),
 
                 // OpenAI-compatible providers
-                "openrouter" => Box::new(OpenAIProvider::openrouter(
-                    api_key,
-                    config.models.clone(),
-                )),
-                "deepinfra" => Box::new(OpenAIProvider::deepinfra(
-                    api_key,
-                    config.models.clone(),
-                )),
-                "novita" => Box::new(OpenAIProvider::novita(
-                    api_key,
-                    config.models.clone(),
-                )),
-                "baseten" => Box::new(OpenAIProvider::baseten(
-                    api_key,
-                    config.models.clone(),
-                )),
-                "together" => Box::new(OpenAIProvider::together(
-                    api_key,
-                    config.models.clone(),
-                )),
-                "fireworks" => Box::new(OpenAIProvider::fireworks(
-                    api_key,
-                    config.models.clone(),
-                )),
-                "groq" => Box::new(OpenAIProvider::groq(
-                    api_key,
-                    config.models.clone(),
-                )),
-                "nebius" => Box::new(OpenAIProvider::nebius(
-                    api_key,
-                    config.models.clone(),
-                )),
-                "cerebras" => Box::new(OpenAIProvider::cerebras(
-                    api_key,
-                    config.models.clone(),
-                )),
-                "moonshot" => Box::new(OpenAIProvider::moonshot(
-                    api_key,
-                    config.models.clone(),
-                )),
+                "openrouter" => {
+                    Box::new(OpenAIProvider::openrouter(api_key, config.models.clone()))
+                }
+                "deepinfra" => Box::new(OpenAIProvider::deepinfra(api_key, config.models.clone())),
+                "novita" => Box::new(OpenAIProvider::novita(api_key, config.models.clone())),
+                "baseten" => Box::new(OpenAIProvider::baseten(api_key, config.models.clone())),
+                "together" => Box::new(OpenAIProvider::together(api_key, config.models.clone())),
+                "fireworks" => Box::new(OpenAIProvider::fireworks(api_key, config.models.clone())),
+                "groq" => Box::new(OpenAIProvider::groq(api_key, config.models.clone())),
+                "nebius" => Box::new(OpenAIProvider::nebius(api_key, config.models.clone())),
+                "cerebras" => Box::new(OpenAIProvider::cerebras(api_key, config.models.clone())),
+                "moonshot" => Box::new(OpenAIProvider::moonshot(api_key, config.models.clone())),
+                "vertex-ai" => Box::new(OpenAIProvider::vertex_ai(api_key, config.models.clone())),
 
                 other => {
-                    return Err(ProviderError::ConfigError(
-                        format!("Unknown provider type: {}", other)
-                    ));
+                    return Err(ProviderError::ConfigError(format!(
+                        "Unknown provider type: {}",
+                        other
+                    )));
                 }
             };
 
@@ -139,7 +124,9 @@ impl ProviderRegistry {
             // We only register the provider by name
 
             // Add provider to registry
-            registry.providers.insert(config.name.clone(), Arc::new(provider));
+            registry
+                .providers
+                .insert(config.name.clone(), Arc::new(provider));
         }
 
         Ok(registry)
@@ -151,7 +138,10 @@ impl ProviderRegistry {
     }
 
     /// Get a provider for a specific model
-    pub fn get_provider_for_model(&self, model: &str) -> Result<Arc<Box<dyn AnthropicProvider>>, ProviderError> {
+    pub fn get_provider_for_model(
+        &self,
+        model: &str,
+    ) -> Result<Arc<Box<dyn AnthropicProvider>>, ProviderError> {
         // First, check if we have a direct model → provider mapping
         if let Some(provider_name) = self.model_to_provider.get(model) {
             if let Some(provider) = self.providers.get(provider_name) {

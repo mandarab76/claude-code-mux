@@ -1,9 +1,9 @@
+use anyhow::{anyhow, Context, Result};
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
+use chrono::{DateTime, Utc};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use anyhow::{Context, Result, anyhow};
-use chrono::{DateTime, Utc};
 
 use super::token_store::{OAuthToken, TokenStore};
 
@@ -28,7 +28,10 @@ impl PKCEVerifier {
         let challenge_bytes = hasher.finalize();
         let challenge = URL_SAFE_NO_PAD.encode(&challenge_bytes);
 
-        Self { verifier, challenge }
+        Self {
+            verifier,
+            challenge,
+        }
     }
 }
 
@@ -94,8 +97,7 @@ impl OAuthClient {
     pub fn get_authorization_url(&self) -> AuthorizationUrl {
         let pkce = PKCEVerifier::generate();
 
-        let mut url = url::Url::parse(&self.config.auth_url)
-            .expect("Invalid auth URL");
+        let mut url = url::Url::parse(&self.config.auth_url).expect("Invalid auth URL");
 
         url.query_pairs_mut()
             .append_pair("code", "true")
@@ -151,7 +153,8 @@ impl OAuthClient {
             expires_in: i64,
         }
 
-        let response = self.http_client
+        let response = self
+            .http_client
             .post(&self.config.token_url)
             .header("Content-Type", "application/json")
             .json(&request)
@@ -165,7 +168,9 @@ impl OAuthClient {
             return Err(anyhow!("Token exchange failed: {} - {}", status, body));
         }
 
-        let token_response: TokenResponse = response.json().await
+        let token_response: TokenResponse = response
+            .json()
+            .await
             .context("Failed to parse token response")?;
 
         let expires_at = Utc::now() + chrono::Duration::seconds(token_response.expires_in);
@@ -186,7 +191,9 @@ impl OAuthClient {
 
     /// Refresh an access token
     pub async fn refresh_token(&self, provider_id: &str) -> Result<OAuthToken> {
-        let existing_token = self.token_store.get(provider_id)
+        let existing_token = self
+            .token_store
+            .get(provider_id)
             .context("No token found for provider")?;
 
         #[derive(Serialize)]
@@ -209,7 +216,8 @@ impl OAuthClient {
             expires_in: i64,
         }
 
-        let response = self.http_client
+        let response = self
+            .http_client
             .post(&self.config.token_url)
             .header("Content-Type", "application/json")
             .json(&request)
@@ -223,7 +231,9 @@ impl OAuthClient {
             return Err(anyhow!("Token refresh failed: {} - {}", status, body));
         }
 
-        let token_response: TokenResponse = response.json().await
+        let token_response: TokenResponse = response
+            .json()
+            .await
             .context("Failed to parse token response")?;
 
         let expires_at = Utc::now() + chrono::Duration::seconds(token_response.expires_in);
@@ -244,7 +254,9 @@ impl OAuthClient {
 
     /// Get a valid access token (refreshing if needed)
     pub async fn get_valid_token(&self, provider_id: &str) -> Result<String> {
-        let token = self.token_store.get(provider_id)
+        let token = self
+            .token_store
+            .get(provider_id)
             .context("No token found for provider")?;
 
         if token.needs_refresh() {
@@ -264,7 +276,8 @@ impl OAuthClient {
             raw_key: String,
         }
 
-        let response = self.http_client
+        let response = self
+            .http_client
             .post("https://api.anthropic.com/api/oauth/claude_cli/create_api_key")
             .header("Content-Type", "application/json")
             .header("Authorization", format!("Bearer {}", access_token))
@@ -278,7 +291,9 @@ impl OAuthClient {
             return Err(anyhow!("API key creation failed: {} - {}", status, body));
         }
 
-        let api_key_response: ApiKeyResponse = response.json().await
+        let api_key_response: ApiKeyResponse = response
+            .json()
+            .await
             .context("Failed to parse API key response")?;
 
         Ok(api_key_response.raw_key)
